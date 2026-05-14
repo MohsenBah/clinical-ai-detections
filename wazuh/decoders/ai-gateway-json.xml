@@ -1,0 +1,13 @@
+<!--
+Wazuh decoder for Clinical AI Gateway JSON audit logs.
+
+Install path example:
+  /var/ossec/etc/decoders/ai-gateway-json.xml
+
+This decoder assumes the gateway emits one JSON object per log line.
+-->
+
+<decoder name="ai-gateway-json">
+  <prematch>^{</prematch>
+  <plugin_decoder>JSON_Decoder</plugin_decoder>
+</decoder>

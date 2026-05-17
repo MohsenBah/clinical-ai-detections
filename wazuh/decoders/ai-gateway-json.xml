@@ -9,5 +9,5 @@ This decoder assumes the gateway emits one JSON object per log line.
 
 <decoder name="ai-gateway-json">
   <prematch>^{</prematch>
-  <plugin_decoder>JSON_Decoder</plugin_decoder>
-</decoder>
+  <json>yes</json>
+  <type>json</type>

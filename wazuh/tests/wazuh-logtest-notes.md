@@ -52,6 +52,32 @@ Expected result:
 No prompt injection alert
 ```
 
+### Repeated Probing (3+ blocked events)
+
+Expected rule:
+
+```text
+100100
+100200
+```
+
+### PHI Probing
+
+Expected rule:
+
+```text
+100300
+```
+
+### Abnormal Query Length (>2000 chars)
+
+Expected rule:
+
+```text
+100400
+100401 (if blocked)
+```
+
 ## Validation Command
 
 On a Wazuh manager:
@@ -64,6 +90,10 @@ Paste one JSON event at a time.
 
 ## Notes
 
-This first version validates single-event detections only.
+Updated to include correlation rules (repeated probing) and keyword-based detections (PHI probing, abnormal length).
+Test with the expanded sample set in prompt-injection-log-samples.json.
 
-Correlation detections such as repeated probing will be added later.
+**New test cases added:**
+- Multiple blocked events from same user (triggers 100200)
+- PHI-related queries (triggers 100300)
+- Very long queries (triggers 100400/100401)

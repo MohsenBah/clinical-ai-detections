@@ -1,0 +1,103 @@
+{
+  "dashboard": {
+    "title": "Prompt Injection Attempts",
+    "uid": "prompt-injection",
+    "tags": ["clinical", "ai", "security", "prompt-injection", "wazuh"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "title": "Total Injection Attempts",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count_over_time({job=\"wazuh\"} | json | rule_id=~\"100100|100101|100102\" [6h])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds", "seriesBy": "last"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 20}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Injection Attempts by Pattern",
+        "type": "piechart",
+        "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count by (reason) (count_over_time({job=\"wazuh\"} | json | rule_id=~\"100100|100101|100102\" [6h]))",
+            "legendFormat": "{{reason}}"
+          }
+        ]
+      },
+      {
+        "title": "Injection Attempts Over Time",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "rate(count_over_time({job=\"wazuh\"} | json | rule_id=~\"100100|100101|100102\" [5m]) [5m])",
+            "legendFormat": "Attempts/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "Severity Distribution",
+        "type": "barchart",
+        "gridPos": {"h": 8, "w": 4, "x": 8, "y": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count by (level) (count_over_time({job=\"wazuh\"} | json | rule_id=~\"100100|100101|100102\" [6h]))",
+            "legendFormat": "Level {{level}}"
+          }
+        ]
+      },
+      {
+        "title": "Top Attackers (by user_id)",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(15, count by (user_id, session_id) (count_over_time({job=\"wazuh\"} | json | rule_id=~\"100100|100101|100102\" [6h])))",
+            "legendFormat": "{{user_id}}"
+          }
+        ],
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Value"},
+              "properties": [{"id": "displayName", "value": "Attempt Count"}]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

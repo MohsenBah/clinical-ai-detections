@@ -1,0 +1,104 @@
+{
+  "dashboard": {
+    "title": "Clinical AI Security Overview",
+    "uid": "clinical-ai-security",
+    "tags": ["clinical", "ai", "security", "wazuh"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "title": "Total Queries (Last Hour)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count_over_time({job=\"wazuh\"} | json | event_type=\"query\" [1h])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "Blocked vs Allowed",
+        "type": "piechart",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count_over_time({job=\"wazuh\"} | json | decision=\"blocked\" [1h])"
+          },
+          {
+            "refId": "B",
+            "expr": "count_over_time({job=\"wazuh\"} | json | decision=\"allowed\" [1h])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      },
+      {
+        "title": "Blocked Queries Over Time",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "rate(count_over_time({job=\"wazuh\"} | json | decision=\"blocked\" [5m]) [5m])",
+            "legendFormat": "Blocked Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "title": "Top Blocked Reasons",
+        "type": "barchart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, count by (reason) (count_over_time({job=\"wazuh\"} | json | decision=\"blocked\" [1h])))",
+            "legendFormat": "{{reason}}"
+          }
+        ]
+      },
+      {
+        "title": "Top Users by Blocked Events",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, count by (user_id) (count_over_time({job=\"wazuh\"} | json | decision=\"blocked\" [1h])))",
+            "legendFormat": "{{user_id}}"
+          }
+        ],
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Value"},
+              "properties": [{"id": "displayName", "value": "Blocked Count"}]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -8,10 +8,10 @@ Install path example:
 <group name="clinical_ai_gateway,llm_security,prompt_injection,">
 
   <rule id="100100" level="8">
-    <decoded_as>json</decoded_as>
+    <if_sid>86600</if_sid>
     <field name="event_type">query</field>
     <field name="decision">blocked</field>
-    <field name="reason">blocked_pattern:.*</field>
+    <field name="reason" type="pcre2">^blocked_pattern:.*</field>
     <description>Clinical AI Gateway blocked a prompt injection attempt</description>
     <mitre>
       <id>AML.T0051</id>
@@ -34,23 +34,20 @@ Install path example:
   </rule>
 
   <!-- Repeated probing: 3+ blocked events from same user in 5 minutes -->
-  <rule id="100200" level="10">
-    <if_sid>100100</if_sid>
-    <frequency>3</frequency>
-    <timeframe>300</timeframe>
-    <same_id>user_id</same_id>
+  <rule id="100200" level="10" frequency="3" timeframe="300">
+    <if_matched_sid>100100</if_matched_sid>
+    <same_field>user_id</same_field>
     <description>Clinical AI Gateway detected repeated prompt injection attempts from same user</description>
     <mitre>
       <id>AML.T0051</id>
     </mitre>
     <group>clinical_ai_gateway,prompt_injection,probing,</group>
   </rule>
-
   <!-- PHI probing: queries targeting personal health information -->
   <rule id="100300" level="9">
     <decoded_as>json</decoded_as>
     <field name="event_type">query</field>
-    <field name="query">.*(ssn|social security|date of birth|dob|address|insurance|phone number|contact info|medical record).* </field>
+    <field name="query" type="pcre2">(?i).*(ssn|social security|date of birth|dob|address|insurance|phone number|contact info|medical record).*</field>
     <description>Clinical AI Gateway detected potential PHI probing query</description>
     <mitre>
       <id>AML.T0051</id>
@@ -62,8 +59,7 @@ Install path example:
   <rule id="100400" level="7">
     <decoded_as>json</decoded_as>
     <field name="event_type">query</field>
-    <field name="query_length">2000</field>
-    <options>field</options>
+    <field name="query_length_bucket">large</field>
     <description>Clinical AI Gateway received abnormally long query</description>
     <group>clinical_ai_gateway,abnormal_usage,</group>
   </rule>
@@ -74,4 +70,6 @@ Install path example:
     <description>Clinical AI Gateway blocked abnormally long query (potential abuse)</description>
     <group>clinical_ai_gateway,abnormal_usage,blocked,</group>
   </rule>
+  
 
+</group>

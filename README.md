@@ -36,15 +36,111 @@ The gateway emits structured JSON logs like:
 }
 ```
 
+---
+
+## AI Security Detection Pipeline
+
+Clinical AI Gateway emits structured JSON audit events which are forwarded to Wazuh SIEM.
+
+```
+┌─────────────────────────────┐
+│         Clinician           │
+│     (Kasm Workspace)        │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│     Clinical AI Gateway     │
+│  FastAPI + Guardrails       │
+│                             │
+│ - Prompt injection checks   │
+│ - PHI filtering             │
+│ - Request validation        │
+│ - Output filtering          │
+└──────────────┬──────────────┘
+               │
+               │ Structured JSON audit logs
+               ▼
+┌─────────────────────────────┐
+│     security.log            │
+│  JSON Security Telemetry    │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│       Wazuh Agent           │
+│      (Developer Laptop)     │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│       Wazuh Manager         │
+│      192.168.7.10           │
+│                             │
+│ Custom Components:          │
+│ - JSON Decoder              │
+│ - Prompt Injection Rules    │
+│ - Correlation Rules         │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│      Detection Engine       │
+│                             │
+│ Detects:                    │
+│ - Prompt injection          │
+│ - Instruction override      │
+│ - Repeated probing          │
+│ - PHI probing               │
+│ - Abnormal query behavior   │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│      Wazuh Dashboard        │
+│                             │
+│ - Rule 100100 alerts        │
+│ - Rule 100200 correlation   │
+│ - Threat hunting            │
+│ - Audit visibility          │
+└─────────────────────────────┘
+```
+
+Custom detections include:
+
+- Prompt injection attempts
+- Instruction override attempts
+- Repeated probing behavior
+- PHI probing patterns
+- Abnormal query activity
+
+### Example Detections
+
+**Wazuh Rule Alert - Prompt Injection Blocked**  
+![Wazuh Alert](docs/wazuh-alert-ai.png)
+
+**Custom Wazuh Rule Configuration**  
+![Wazuh Rule](docs/wazuh-rule-ai.png)
+
+**Wazuh Security Dashboard**  
+![Wazuh Dashboard](docs/wazuh-dash.png)
+
+---
+
 ## Repository Structure
 
 ```text
 clinical-ai-detections/
 ├── README.md
 ├── docs/
+│   ├── correlation-rules.md
+│   ├── coverage-matrix.md
 │   ├── data-sources.md
 │   ├── detection-roadmap.md
-│   └── coverage-matrix.md
+│   ├── update-recommendations.md
+│   ├── wazuh-alert-ai.png
+│   ├── wazuh-dash.png
+│   └── wazuh-rule-ai.png
 ├── wazuh/
 │   ├── decoders/
 │   │   └── ai-gateway-json.xml
@@ -55,6 +151,8 @@ clinical-ai-detections/
 │       └── wazuh-logtest-notes.md
 └── grafana/
     └── dashboards/
+        ├── clinical-ai-security-overview.json
+        ├── prompt-injection-dashboard.json
         └── README.md
 ```
 
@@ -82,6 +180,16 @@ Name: Clinical AI Gateway prompt injection attempt blocked
 Severity: 8
 ```
 
+## Correlation Rules
+
+Advanced behavioral detection using Wazuh correlation:
+
+- **Rule 100200**: Repeated probing (3+ blocked events from same user in 5 minutes)
+- **Rule 100300**: PHI probing (queries targeting personal health information)
+- **Rule 100400/401**: Abnormal query length detection
+
+See [docs/correlation-rules.md](docs/correlation-rules.md) for detailed documentation.
+
 ## Future Work
 
 Planned detections:
@@ -103,4 +211,13 @@ clinical-ai-gateway
 
 ## Status
 
-Initial detection engineering baseline.
+**Phase 2 Complete** - Behavioral Detection & Visualization
+
+- ✅ Wazuh decoder (native JSON parsing)
+- ✅ 5 detection rules (100100-100401)
+- ✅ 21 test samples with PHI probing, rate limiting, normal queries
+- ✅ 2 Grafana dashboards (Security Overview, Prompt Injection)
+- ✅ Correlation rules documentation
+- ✅ Complete detection pipeline with screenshots
+
+*Last Updated: May 24, 2026*

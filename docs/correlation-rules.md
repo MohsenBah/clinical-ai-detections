@@ -79,7 +79,6 @@ The following correlation patterns are designed but not yet implemented as rules
 ```xml
 <rule id="100210" level="8">
   <if_sid>100100</if_sid>
-  <frequency>10</frequency>
   <timeframe>3600</timeframe>
   <same_id>user_id</same_id>
   <description>User has high blocked event rate (possible probing)</description>
@@ -177,6 +176,3 @@ The following correlation patterns are designed but not yet implemented as rules
 - **Coverage Matrix**: `docs/coverage-matrix.md`
 
 ---
-
-*Last Updated: May 19, 2026*  
-*Status: Phase 2.2 Complete - Core correlation concepts documented; additional scenarios ready for implementation*

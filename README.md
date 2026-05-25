@@ -40,7 +40,7 @@ The gateway emits structured JSON logs like:
 
 ## AI Security Detection Pipeline
 
-Clinical AI Gateway emits structured JSON audit events which are forwarded to Wazuh SIEM.
+Clinical AI Gateway emits structured JSON audit events which flow through the observability and detection stack:
 
 ```
 ┌─────────────────────────────┐
@@ -50,7 +50,7 @@ Clinical AI Gateway emits structured JSON audit events which are forwarded to Wa
                │
                ▼
 ┌─────────────────────────────┐
-│     Clinical AI Gateway     │
+│       AI Gateway            │
 │  FastAPI + Guardrails       │
 │                             │
 │ - Prompt injection checks   │
@@ -59,62 +59,55 @@ Clinical AI Gateway emits structured JSON audit events which are forwarded to Wa
 │ - Output filtering          │
 └──────────────┬──────────────┘
                │
-               │ Structured JSON audit logs
+               │ Structured security telemetry
                ▼
 ┌─────────────────────────────┐
-│     security.log            │
-│  JSON Security Telemetry    │
+│         Promtail            │
+│      Log Shipping           │
 └──────────────┬──────────────┘
                │
                ▼
 ┌─────────────────────────────┐
-│       Wazuh Agent           │
-│      (Developer Laptop)     │
+│           Loki              │
+│      Log Aggregation        │
 └──────────────┬──────────────┘
                │
                ▼
 ┌─────────────────────────────┐
-│       Wazuh Manager         │
-│      192.168.7.10           │
+│      Grafana Dashboards     │
+│   Visualization & Alerting  │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│      Wazuh Detections       │
 │                             │
-│ Custom Components:          │
-│ - JSON Decoder              │
-│ - Prompt Injection Rules    │
-│ - Correlation Rules         │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│      Detection Engine       │
-│                             │
-│ Detects:                    │
 │ - Prompt injection          │
 │ - Instruction override      │
 │ - Repeated probing          │
 │ - PHI probing               │
 │ - Abnormal query behavior   │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│      Wazuh Dashboard        │
-│                             │
-│ - Rule 100100 alerts        │
-│ - Rule 100200 correlation   │
-│ - Threat hunting            │
-│ - Audit visibility          │
 └─────────────────────────────┘
 ```
 
-Custom detections include:
+### Architecture Components
 
-- Prompt injection attempts
-- Instruction override attempts
-- Repeated probing behavior
-- PHI probing patterns
-- Abnormal query activity
+| Component | Purpose |
+|-----------|---------|
+| **AI Gateway** | FastAPI application with guardrails for input/output validation |
+| **security.log** | Structured JSON security telemetry (10MB rotation, 5 backups) |
+| **Promtail** | Log shipper that tails security.log and forwards to Loki |
+| **Loki** | Log aggregation system for querying and storing log streams |
+| **Grafana** | Dashboards for visualization, metrics, and alerting |
+| **Wazuh** | SIEM for detection rules, correlation, and compliance |
 
-### Example Detections
+### Grafana Observability Stack
+
+![Grafana Pipeline](docs/grafana.png)
+
+---
+
+## Example Detections
 
 **Wazuh Rule Alert - Prompt Injection Blocked**  
 ![Wazuh Alert](docs/wazuh-alert-ai.png)
@@ -137,7 +130,7 @@ clinical-ai-detections/
 │   ├── coverage-matrix.md
 │   ├── data-sources.md
 │   ├── detection-roadmap.md
-│   ├── update-recommendations.md
+│   ├── grafana.png
 │   ├── wazuh-alert-ai.png
 │   ├── wazuh-dash.png
 │   └── wazuh-rule-ai.png
@@ -158,7 +151,13 @@ clinical-ai-detections/
 
 ## Detection Strategy
 
-The first version uses gateway audit logs as the primary data source.
+The detection pipeline uses multiple data paths:
+
+| Path | Technology | Use Case |
+|------|------------|----------|
+| **Wazuh Rules** | Custom decoders + rules | Real-time SIEM alerting |
+| **Grafana + Loki** | LogQL queries | Ad-hoc investigation, metrics |
+| **Correlation** | Wazuh frequency/timeframe | Behavioral anomaly detection |
 
 Detection logic focuses on:
 
@@ -219,5 +218,5 @@ clinical-ai-gateway
 - ✅ 2 Grafana dashboards (Security Overview, Prompt Injection)
 - ✅ Correlation rules documentation
 - ✅ Complete detection pipeline with screenshots
+- ✅ Promtail → Loki → Grafana observability stack
 
-*Last Updated: May 24, 2026*

@@ -2,17 +2,19 @@
 
 This matrix tracks detection coverage for clinical AI security scenarios.
 
-| Scenario | Data Source | Detection Status | Rule ID | Notes |
-|---|---|---|---|---|
-| Direct prompt injection | Gateway audit logs | Covered | 100100 | Detects blocked prompt injection patterns |
-| System prompt extraction | Gateway audit logs | Partial | 100100 | Covered when gateway blocks known patterns |
-| Safety bypass request | Gateway audit logs | Partial | 100100 | Covered when reason starts with blocked_pattern |
-| Repeated probing | Gateway audit logs | **In Progress** | 100200 | Correlation rule added for repeated blocked events |
-| PHI probing | Gateway audit logs | **Covered** | 100300 | PHI keyword detection with 5+ test samples |
-| Abnormal query length | Gateway audit logs | **In Progress** | 100400, 100401 | Rules for long queries and blocked long queries added |
-| Off-hours access | Gateway audit logs | Planned | 100500 | Requires user/time context |
-| Model tampering | Host/Wazuh FIM | Planned | 100600 | Requires file integrity monitoring |
-| RAG data poisoning | App/data logs | Research | TBD | Requires ingestion pipeline events |
+| Scenario | Data Source | Detection Status | Rule ID | MITRE ATLAS | Notes |
+|---|---|---|---|---|---|
+| Direct prompt injection | Gateway audit logs | Covered | 100100 | AML.T0051 / AML.TA0002 | Detects blocked prompt injection patterns |
+| System prompt extraction | Gateway audit logs | Covered | 100101 | AML.T0051 / AML.TA0002 | Child rule when `reason` matches system prompt |
+| Instruction override | Gateway audit logs | Covered | 100102 | AML.T0051 / AML.TA0002 | Child rule for instruction override pattern |
+| Safety bypass request | Gateway audit logs | Partial | 100100 | AML.T0051 / AML.TA0002 | Covered when reason starts with `blocked_pattern` |
+| Repeated probing | Gateway audit logs | Covered | 100200 | AML.T0051 / AML.TA0002 | Correlation: 3+ blocked events per user in 5 min |
+| PHI probing | Gateway audit logs | Covered | 100300 | AML.T0057 / AML.TA0001 | PHI keyword detection with 5+ test samples |
+| Abnormal query length | Gateway audit logs | Covered | 100400 | AML.T0051 / AML.TA0002 | Long query detection via `query_length_bucket` |
+| Blocked long query | Gateway audit logs | Covered | 100401 | AML.T0051 / AML.TA0002 | Child rule when long query is blocked |
+| Off-hours access | Gateway audit logs | Planned | 100500 | AML.TA0001 | Requires user/time context |
+| Model tampering | Host/Wazuh FIM | Planned | 100600 | TBD | Requires file integrity monitoring |
+| RAG data poisoning | App/data logs | Research | TBD | AML.T0058 (planned) | Ingestion telemetry available; detection rule pending |
 
 ## Coverage Legend
 
@@ -22,6 +24,15 @@ This matrix tracks detection coverage for clinical AI security scenarios.
 | Partial | Some cases covered, but not complete |
 | Planned | Detection design exists but not implemented |
 | Research | Needs more investigation |
+
+## MITRE ATLAS Summary
+
+| Technique | Tactic | Rules |
+|---|---|---|
+| AML.T0051 — LLM Prompt Injection | AML.TA0002 — ML Model Access | 100100, 100101, 100102, 100200, 100400, 100401 |
+| AML.T0057 — LLM Data Leakage | AML.TA0001 — Reconnaissance | 100300 |
+
+Full mapping details: [mitre-atlas-mapping.md](mitre-atlas-mapping.md)
 
 ## Test Coverage Summary
 

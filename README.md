@@ -128,6 +128,7 @@ clinical-ai-detections/
 ├── docs/
 │   ├── correlation-rules.md
 │   ├── coverage-matrix.md
+│   ├── mitre-atlas-mapping.md
 │   ├── data-sources.md
 │   ├── detection-roadmap.md
 │   ├── grafana.png
@@ -146,6 +147,7 @@ clinical-ai-detections/
     └── dashboards/
         ├── clinical-ai-security-overview.json
         ├── prompt-injection-dashboard.json
+        ├── rag-ingestion-dashboard.json
         └── README.md
 ```
 
@@ -189,6 +191,17 @@ Advanced behavioral detection using Wazuh correlation:
 
 See [docs/correlation-rules.md](docs/correlation-rules.md) for detailed documentation.
 
+## MITRE ATLAS Mapping
+
+All 7 detection rules (100100–100401) are mapped to MITRE ATLAS techniques and tactics:
+
+| Technique | Tactic | Rules |
+|---|---|---|
+| AML.T0051 — LLM Prompt Injection | AML.TA0002 — ML Model Access | 100100, 100101, 100102, 100200, 100400, 100401 |
+| AML.T0057 — LLM Data Leakage | AML.TA0001 — Reconnaissance | 100300 |
+
+See [docs/mitre-atlas-mapping.md](docs/mitre-atlas-mapping.md) for full mapping details.
+
 ## Future Work
 
 Planned detections:
@@ -210,12 +223,13 @@ clinical-ai-gateway
 
 ## Status
 
-**Phase 2 Complete** - Behavioral Detection & Visualization
+**Phase 3.2A Complete** — MITRE ATLAS mapping, telemetry dashboards, gateway observability
 
 - ✅ Wazuh decoder (native JSON parsing)
-- ✅ 5 detection rules (100100-100401)
+- ✅ 7 detection rules (100100–100401) with MITRE ATLAS annotations
+- ✅ `docs/mitre-atlas-mapping.md` and updated coverage matrix
 - ✅ 21 test samples with PHI probing, rate limiting, normal queries
-- ✅ 2 Grafana dashboards (Security Overview, Prompt Injection)
+- ✅ 3 Grafana dashboards (Security Overview, Prompt Injection, RAG Ingestion)
 - ✅ Correlation rules documentation
 - ✅ Complete detection pipeline with screenshots
 - ✅ Promtail → Loki → Grafana observability stack

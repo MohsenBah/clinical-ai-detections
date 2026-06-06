@@ -43,7 +43,7 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "sum(count_over_time({job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\" [6h]))",
+                      "expr": "sum(count_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" [1h]))",
                       "queryType": "range"
                     },
                     "version": "v0"
@@ -59,7 +59,7 @@
         "description": "",
         "id": 1,
         "links": [],
-        "title": "Prompt Injection Blocks",
+        "title": "Ingestion Events (1h)",
         "vizConfig": {
           "group": "stat",
           "kind": "VizConfig",
@@ -161,7 +161,7 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "sum(count_over_time({job=\"clinical-ai-gateway\"} | json | matched_pattern=~\".*ignore all previous instructions.*\" [6h]))",
+                      "expr": "sum(sum_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" | status=\"success\" | unwrap record_count [1h]))",
                       "queryType": "range"
                     },
                     "version": "v0"
@@ -177,7 +177,7 @@
         "description": "",
         "id": 2,
         "links": [],
-        "title": "Instruction Override Pattern",
+        "title": "Records Ingested (1h)",
         "vizConfig": {
           "group": "stat",
           "kind": "VizConfig",
@@ -279,7 +279,7 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "sum(count_over_time({job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\" [5m]))",
+                      "expr": "sum(count_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" | status=\"success\" [6h])) / sum(count_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" [6h])) * 100",
                       "queryType": "range"
                     },
                     "version": "v0"
@@ -292,12 +292,12 @@
             "transformations": []
           }
         },
-        "description": "",
+        "description": "Percentage of ingestion events with status=success",
         "id": 3,
         "links": [],
-        "title": "Prompt Injection Over Time",
+        "title": "Ingestion Success Rate",
         "vizConfig": {
-          "group": "timeseries",
+          "group": "stat",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -397,12 +397,33 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "sum by (matched_pattern) (count_over_time({job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\" [6h]))",
+                      "expr": "sum(sum_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" | unwrap record_count [5m]))",
                       "queryType": "range"
                     },
                     "version": "v0"
                   },
-                  "refId": "A"
+                  "refId": "Records"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "loki"
+                    },
+                    "group": "loki",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "direction": "backward",
+                      "editorMode": "code",
+                      "expr": "sum(sum_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" | unwrap chunk_count [5m]))",
+                      "queryType": "range"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "Chunks"
                 }
               }
             ],
@@ -413,9 +434,9 @@
         "description": "",
         "id": 4,
         "links": [],
-        "title": "Blocked Pattern Distribution",
+        "title": "Ingestion Volume Over Time",
         "vizConfig": {
-          "group": "barchart",
+          "group": "timeseries",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -515,12 +536,33 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "sum by (user_id) (count_over_time({job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\" [6h]))",
+                      "expr": "quantile_over_time(0.50, {job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" | unwrap duration_ms [5m])",
                       "queryType": "range"
                     },
                     "version": "v0"
                   },
-                  "refId": "A"
+                  "refId": "P50"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "loki"
+                    },
+                    "group": "loki",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "direction": "backward",
+                      "editorMode": "code",
+                      "expr": "quantile_over_time(0.95, {job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" | unwrap duration_ms [5m])",
+                      "queryType": "range"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "P95"
                 }
               }
             ],
@@ -528,12 +570,12 @@
             "transformations": []
           }
         },
-        "description": "",
+        "description": "Processing time distribution for ingestion events",
         "id": 5,
         "links": [],
-        "title": "Top Users Sending Prompt Injection Attempts",
+        "title": "Ingestion Latency Percentiles",
         "vizConfig": {
-          "group": "table",
+          "group": "timeseries",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -633,7 +675,7 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "{job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\"",
+                      "expr": "sum by (status) (count_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" [6h]))",
                       "queryType": "range"
                     },
                     "version": "v0"
@@ -649,9 +691,9 @@
         "description": "",
         "id": 6,
         "links": [],
-        "title": "Prompt Injection Raw Events",
+        "title": "Ingestion Outcomes",
         "vizConfig": {
-          "group": "logs",
+          "group": "piechart",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -751,33 +793,12 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "quantile_over_time(0.50, {job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\" | unwrap latency_ms [5m])",
+                      "expr": "sum by (source_type, data_path) (count_over_time({job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\" [6h]))",
                       "queryType": "range"
                     },
                     "version": "v0"
                   },
-                  "refId": "P50"
-                }
-              },
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "loki"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "direction": "backward",
-                      "editorMode": "code",
-                      "expr": "quantile_over_time(0.95, {job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\" | unwrap latency_ms [5m])",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "P95"
+                  "refId": "A"
                 }
               }
             ],
@@ -785,12 +806,12 @@
             "transformations": []
           }
         },
-        "description": "Time from request receipt to block decision (ms)",
+        "description": "",
         "id": 7,
         "links": [],
-        "title": "Block Decision Latency",
+        "title": "Top Ingested Sources",
         "vizConfig": {
-          "group": "timeseries",
+          "group": "table",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -890,7 +911,7 @@
                     "spec": {
                       "direction": "backward",
                       "editorMode": "code",
-                      "expr": "sum by (query_category) (count_over_time({job=\"clinical-ai-gateway\"} | json | blocked_category=\"prompt_injection\" [6h]))",
+                      "expr": "{job=\"clinical-ai-gateway\"} | json | event_type=\"ingestion\"",
                       "queryType": "range"
                     },
                     "version": "v0"
@@ -903,12 +924,12 @@
             "transformations": []
           }
         },
-        "description": "Which query categories produce the most injection blocks",
+        "description": "",
         "id": 8,
         "links": [],
-        "title": "Blocks by Query Category",
+        "title": "Ingestion Raw Events",
         "vizConfig": {
-          "group": "barchart",
+          "group": "logs",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -1001,7 +1022,7 @@
               "name": "panel-1"
             },
             "height": 4,
-            "width": 6,
+            "width": 4,
             "x": 0,
             "y": 0
           }
@@ -1014,8 +1035,8 @@
               "name": "panel-2"
             },
             "height": 4,
-            "width": 6,
-            "x": 6,
+            "width": 4,
+            "x": 4,
             "y": 0
           }
         },
@@ -1026,10 +1047,10 @@
               "kind": "ElementReference",
               "name": "panel-3"
             },
-            "height": 8,
-            "width": 12,
-            "x": 0,
-            "y": 4
+            "height": 4,
+            "width": 4,
+            "x": 8,
+            "y": 0
           }
         },
         {
@@ -1042,7 +1063,7 @@
             "height": 8,
             "width": 12,
             "x": 0,
-            "y": 12
+            "y": 4
           }
         },
         {
@@ -1055,7 +1076,7 @@
             "height": 8,
             "width": 12,
             "x": 0,
-            "y": 20
+            "y": 12
           }
         },
         {
@@ -1066,9 +1087,9 @@
               "name": "panel-6"
             },
             "height": 8,
-            "width": 12,
+            "width": 6,
             "x": 0,
-            "y": 28
+            "y": 20
           }
         },
         {
@@ -1079,9 +1100,9 @@
               "name": "panel-7"
             },
             "height": 8,
-            "width": 12,
-            "x": 0,
-            "y": 36
+            "width": 6,
+            "x": 6,
+            "y": 20
           }
         },
         {
@@ -1094,7 +1115,7 @@
             "height": 8,
             "width": 12,
             "x": 0,
-            "y": 44
+            "y": 28
           }
         }
       ]
@@ -1115,7 +1136,8 @@
     "clinical",
     "ai",
     "security",
-    "prompt-injection",
+    "ingestion",
+    "rag",
     "loki"
   ],
   "timeSettings": {
@@ -1138,6 +1160,6 @@
     "timezone": "browser",
     "to": "now"
   },
-  "title": "Prompt Injection Detection Dashboard",
+  "title": "RAG Ingestion Monitoring",
   "variables": []
 }

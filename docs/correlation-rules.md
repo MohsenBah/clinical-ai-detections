@@ -28,6 +28,8 @@ This document explains how Wazuh correlation rules are used to detect behavioral
 
 ### Rule 100200: Repeated Prompt Injection Probing
 
+**MITRE ATLAS**: AML.T0051 (LLM Prompt Injection) / AML.TA0002 (ML Model Access)
+
 **Severity**: Level 10 (Critical)
 
 **Logic**:

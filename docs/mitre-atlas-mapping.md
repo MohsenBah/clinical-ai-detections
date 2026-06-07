@@ -73,14 +73,15 @@ Adversaries interact with the model inference interface to manipulate behavior, 
 
 ## Wazuh Rule Annotation Format
 
-Each rule includes MITRE annotations in the rule XML:
+Wazuh `<mitre>` blocks support **only** `<id>` — not `<tactic>`. Tactic mappings (AML.TA0001, AML.TA0002) are documented in this file and in `coverage-matrix.md` for compliance reporting; they are not embedded in rule XML.
 
 ```xml
 <mitre>
   <id>AML.T0051</id>
-  <tactic>AML.TA0002</tactic>
 </mitre>
 ```
+
+Using `<tactic>` causes `wazuh-logtest` to fail with `Invalid option 'tactic' for rule`.
 
 Install rules from `wazuh/rules/100100-prompt-injection.xml` and verify with samples in `wazuh/tests/prompt-injection-log-samples.json`.
 

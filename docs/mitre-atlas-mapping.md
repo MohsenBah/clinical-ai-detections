@@ -69,6 +69,8 @@ Adversaries interact with the model inference interface to manipulate behavior, 
 | LLM07 System Prompt Leakage | AML.T0051 | 100101 |
 | Sensitive data exposure | AML.T0057 | 100300 |
 
+Full HIPAA, OWASP, and NIST mappings: [compliance-matrix.md](compliance-matrix.md)
+
 ---
 
 ## Wazuh Rule Annotation Format

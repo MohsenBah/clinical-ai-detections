@@ -4,11 +4,14 @@ Wazuh rules for Clinical AI Gateway prompt injection detections.
 Install path example:
   /var/ossec/etc/rules/100100-prompt-injection.xml
 
-MITRE ATLAS mapping: docs/mitre-atlas-mapping.md
+Mappings:
+  docs/mitre-atlas-mapping.md
+  docs/compliance-matrix.md
 -->
 
 <group name="clinical_ai_gateway,llm_security,prompt_injection,">
 
+  <!-- compliance: hipaa=164.312(a),(b); owasp=LLM01; nist=Measure,Manage -->
   <rule id="100100" level="8">
     <if_sid>86600</if_sid>
     <field name="event_type">query</field>
@@ -21,6 +24,7 @@ MITRE ATLAS mapping: docs/mitre-atlas-mapping.md
     <group>clinical_ai_gateway,prompt_injection,blocked,</group>
   </rule>
 
+  <!-- compliance: hipaa=164.312(b); owasp=LLM01,LLM07; nist=Measure,Manage -->
   <rule id="100101" level="10">
     <if_sid>100100</if_sid>
     <field name="reason" type="pcre2">system prompt</field>
@@ -31,6 +35,7 @@ MITRE ATLAS mapping: docs/mitre-atlas-mapping.md
     <group>clinical_ai_gateway,prompt_injection,system_prompt_extraction,</group>
   </rule>
 
+  <!-- compliance: hipaa=164.312(b); owasp=LLM01; nist=Measure,Manage -->
   <rule id="100102" level="9">
     <if_sid>100100</if_sid>
     <field name="reason" type="pcre2">ignore all previous instructions</field>
@@ -42,6 +47,7 @@ MITRE ATLAS mapping: docs/mitre-atlas-mapping.md
   </rule>
 
   <!-- Repeated probing: 3+ blocked events from same user in 5 minutes -->
+  <!-- compliance: hipaa=164.312(a),(b); owasp=LLM01,LLM06; nist=Measure,Manage -->
   <rule id="100200" level="10" frequency="3" timeframe="300">
     <if_matched_sid>100100</if_matched_sid>
     <same_field>user_id</same_field>
@@ -53,6 +59,7 @@ MITRE ATLAS mapping: docs/mitre-atlas-mapping.md
   </rule>
 
   <!-- PHI probing: queries targeting personal health information -->
+  <!-- compliance: hipaa=164.312(b),(c); owasp=LLM02,LLM06; nist=Measure,Map -->
   <rule id="100300" level="9">
     <if_sid>86600</if_sid>
     <field name="event_type">query</field>
@@ -65,6 +72,7 @@ MITRE ATLAS mapping: docs/mitre-atlas-mapping.md
   </rule>
 
   <!-- Abnormal query length: potential stuffing or exfiltration -->
+  <!-- compliance: hipaa=164.312(b); owasp=LLM01,LLM04; nist=Measure -->
   <rule id="100400" level="7">
     <if_sid>86600</if_sid>
     <field name="event_type">query</field>
@@ -76,6 +84,7 @@ MITRE ATLAS mapping: docs/mitre-atlas-mapping.md
     <group>clinical_ai_gateway,abnormal_usage,</group>
   </rule>
 
+  <!-- compliance: hipaa=164.312(b); owasp=LLM01,LLM04; nist=Measure,Manage -->
   <rule id="100401" level="8">
     <if_sid>100400</if_sid>
     <field name="decision">blocked</field>

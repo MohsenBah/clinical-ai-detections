@@ -32,7 +32,16 @@ This matrix tracks detection coverage for clinical AI security scenarios.
 | AML.T0051 — LLM Prompt Injection | AML.TA0002 — ML Model Access | 100100, 100101, 100102, 100200, 100400, 100401 |
 | AML.T0057 — LLM Data Leakage | AML.TA0001 — Reconnaissance | 100300 |
 
-Full mapping details: [mitre-atlas-mapping.md](mitre-atlas-mapping.md)
+Full mapping details: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [compliance-matrix.md](compliance-matrix.md)
+
+## Compliance Summary
+
+| Framework | Primary rules | Doc |
+|---|---|---|
+| HIPAA §164.312(b) Audit controls | All rules + gateway audit log | [compliance-matrix.md](compliance-matrix.md) |
+| OWASP LLM01 Prompt injection | 100100–100102, 100200, 100400, 100401 | [compliance-matrix.md](compliance-matrix.md) |
+| OWASP LLM02 Sensitive disclosure | 100300 | [compliance-matrix.md](compliance-matrix.md) |
+| NIST AI RMF Measure | 100100–100401, Grafana telemetry | [compliance-matrix.md](compliance-matrix.md) |
 
 ## Test Coverage Summary
 

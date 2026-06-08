@@ -129,6 +129,7 @@ clinical-ai-detections/
 │   ├── correlation-rules.md
 │   ├── coverage-matrix.md
 │   ├── mitre-atlas-mapping.md
+│   ├── compliance-matrix.md
 │   ├── data-sources.md
 │   ├── detection-roadmap.md
 │   ├── grafana.png
@@ -202,13 +203,20 @@ All 7 detection rules (100100–100401) are mapped to MITRE ATLAS techniques and
 
 See [docs/mitre-atlas-mapping.md](docs/mitre-atlas-mapping.md) for full mapping details.
 
+## Compliance Mapping
+
+Detection rules and gateway controls mapped to:
+
+- **HIPAA** §164.312 Technical Safeguards (audit, access, integrity)
+- **OWASP LLM Top 10** (2025) — LLM01, LLM02, LLM04, LLM06, LLM07, LLM10
+- **NIST AI RMF 1.0** — Govern, Map, Measure, Manage
+
+See [docs/compliance-matrix.md](docs/compliance-matrix.md) for the full matrix and rule-level mappings.
+
 ## Future Work
 
 Planned detections:
 
-- PHI probing behavior
-- Repeated blocked attempts from one user/session
-- Abnormal query length
 - Off-hours access
 - Model tampering indicators
 - RAG poisoning attempts
@@ -223,11 +231,12 @@ clinical-ai-gateway
 
 ## Status
 
-**Phase 3.2A Complete** — MITRE ATLAS mapping, telemetry dashboards, gateway observability
+**Complete** — Compliance matrix (HIPAA, OWASP, NIST)
 
 - ✅ Wazuh decoder (native JSON parsing)
 - ✅ 7 detection rules (100100–100401) with MITRE ATLAS annotations
-- ✅ `docs/mitre-atlas-mapping.md` and updated coverage matrix
+- ✅ `docs/mitre-atlas-mapping.md` and `docs/compliance-matrix.md`
+- ✅ Compliance annotations (XML comments) in rule definitions
 - ✅ 21 test samples with PHI probing, rate limiting, normal queries
 - ✅ 3 Grafana dashboards (Security Overview, Prompt Injection, RAG Ingestion)
 - ✅ Correlation rules documentation

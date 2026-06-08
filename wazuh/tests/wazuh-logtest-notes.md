@@ -63,9 +63,20 @@ Child rules **100101** / **100102** require `type="pcre2"` substring match on `r
 
 | File | Path |
 |---|---|
+| **Validation cases** | `wazuh/tests/validation-cases.json` |
+| **Automated runner** | `scripts/validate_rules.py` |
 | Sample logs | `wazuh/tests/prompt-injection-log-samples.json` |
 | Decoder | `wazuh/decoders/ai-gateway-json.xml` |
 | Rules | `wazuh/rules/100100-prompt-injection.xml` |
+
+## Automated validation 
+
+```bash
+python3 scripts/validate_rules.py --offline   # CI / no Wazuh
+python3 scripts/validate_rules.py --wazuh     # on Wazuh manager
+```
+
+See [validation-readme.md](validation-readme.md).
 
 ## Expected Results
 

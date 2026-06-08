@@ -1,0 +1,19 @@
+name: Validate detections
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  offline-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run offline rule validation
+        run: python3 scripts/validate_rules.py --offline
+
+      - name: Validate JSON test fixtures
+        run: python3 -m json.tool wazuh/tests/validation-cases.json > /dev/null

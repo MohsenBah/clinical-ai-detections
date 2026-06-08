@@ -142,8 +142,15 @@ clinical-ai-detections/
 │   ├── rules/
 │   │   └── 100100-prompt-injection.xml
 │   └── tests/
+│       ├── validation-cases.json
+│       ├── validation-readme.md
 │       ├── prompt-injection-log-samples.json
 │       └── wazuh-logtest-notes.md
+├── scripts/
+│   ├── validate_rules.py
+│   └── run_validation.sh
+├── .github/workflows/
+│   └── validate-detections.yml
 └── grafana/
     └── dashboards/
         ├── clinical-ai-security-overview.json
@@ -213,6 +220,19 @@ Detection rules and gateway controls mapped to:
 
 See [docs/compliance-matrix.md](docs/compliance-matrix.md) for the full matrix and rule-level mappings.
 
+## Validation 
+
+Automated regression tests for all active Wazuh rules:
+
+```bash
+python3 scripts/validate_rules.py --offline   # no Wazuh required (CI)
+python3 scripts/validate_rules.py --wazuh     # on Wazuh manager host
+```
+
+Test cases: `wazuh/tests/validation-cases.json` — each case defines `expect_rules` and `reject_rules`.
+
+See [wazuh/tests/validation-readme.md](wazuh/tests/validation-readme.md).
+
 ## Future Work
 
 Planned detections:
@@ -231,12 +251,12 @@ clinical-ai-gateway
 
 ## Status
 
-**Complete** — Compliance matrix (HIPAA, OWASP, NIST)
+**Phase 3 complete** — Detection, compliance, validation
 
 - ✅ Wazuh decoder (native JSON parsing)
 - ✅ 7 detection rules (100100–100401) with MITRE ATLAS annotations
 - ✅ `docs/mitre-atlas-mapping.md` and `docs/compliance-matrix.md`
-- ✅ Compliance annotations (XML comments) in rule definitions
+- ✅ Automated validation (`validation-cases.json`, `scripts/validate_rules.py`, CI)
 - ✅ 21 test samples with PHI probing, rate limiting, normal queries
 - ✅ 3 Grafana dashboards (Security Overview, Prompt Injection, RAG Ingestion)
 - ✅ Correlation rules documentation

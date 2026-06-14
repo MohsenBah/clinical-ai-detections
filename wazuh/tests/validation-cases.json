@@ -37,6 +37,24 @@
       "reject_rules": ["100102", "100300"]
     },
     {
+      "id": "blocked-encoded-injection",
+      "description": "Base64-encoded instruction override blocked after gateway normalization (CAI-006 remediation)",
+      "event": {
+        "timestamp": "2026-06-14T17:40:12.300Z",
+        "event_type": "query",
+        "request_id": "enc-006",
+        "user_id": "encoder-1",
+        "session_id": "encode-session",
+        "decision": "blocked",
+        "reason": "blocked_pattern:ignore all previous instructions",
+        "decode_method": "base64_decoded",
+        "query_length": 78,
+        "latency_ms": 2.4
+      },
+      "expect_rules": ["100100", "100102"],
+      "reject_rules": ["100300", "100400"]
+    },
+    {
       "id": "allowed-normal-clinical",
       "description": "Benign clinical query should not alert",
       "event": {

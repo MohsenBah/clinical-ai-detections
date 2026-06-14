@@ -1,8 +1,19 @@
 # Clinical AI Detections
 
+![Validate detections](https://github.com/MohsenBah/clinical-ai-detections/actions/workflows/validate-detections.yml/badge.svg)
+![Rules](https://img.shields.io/badge/Wazuh%20rules-7%20(100100--100401)-blue)
+![MITRE ATLAS](https://img.shields.io/badge/mapped-MITRE%20ATLAS-orange)
+
 Detection engineering content for attacks against clinical LLM deployments.
 
-This repository contains Wazuh rules, log samples, detection documentation, and Grafana dashboards for monitoring the Clinical AI Gateway.
+This repository contains Wazuh rules, log samples, detection documentation, and Grafana dashboards for monitoring the Clinical AI Gateway. Part of the [MedSecLab](https://github.com/MohsenBah/MedSecLab) portfolio.
+
+## Quick Start
+
+```bash
+# Validate all detection rules offline (no SIEM required — runs in CI)
+python3 scripts/validate_rules.py --offline
+```
 
 ## Purpose
 

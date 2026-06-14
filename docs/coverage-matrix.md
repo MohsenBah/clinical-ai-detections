@@ -8,6 +8,7 @@ This matrix tracks detection coverage for clinical AI security scenarios.
 | System prompt extraction | Gateway audit logs | Covered | 100101 | AML.T0051 / AML.TA0002 | Child rule when `reason` matches system prompt |
 | Instruction override | Gateway audit logs | Covered | 100102 | AML.T0051 / AML.TA0002 | Child rule for instruction override pattern |
 | Safety bypass request | Gateway audit logs | Partial | 100100 | AML.T0051 / AML.TA0002 | Covered when reason starts with `blocked_pattern` |
+| Encoded injection (URL/Base64) | Gateway audit logs | Covered | 100100, 100102 | AML.T0051 / AML.TA0002 | Gateway normalizes input; `decode_method` records the encoding (CAI-006 remediation) |
 | Repeated probing | Gateway audit logs | Covered | 100200 | AML.T0051 / AML.TA0002 | Correlation: 3+ blocked events per user in 5 min |
 | PHI probing | Gateway audit logs | Covered | 100300 | AML.T0057 / AML.TA0001 | PHI keyword detection with 5+ test samples |
 | Abnormal query length | Gateway audit logs | Covered | 100400 | AML.T0051 / AML.TA0002 | Long query detection via `query_length_bucket` |

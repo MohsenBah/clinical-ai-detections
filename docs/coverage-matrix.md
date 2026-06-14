@@ -12,9 +12,9 @@ This matrix tracks detection coverage for clinical AI security scenarios.
 | PHI probing | Gateway audit logs | Covered | 100300 | AML.T0057 / AML.TA0001 | PHI keyword detection with 5+ test samples |
 | Abnormal query length | Gateway audit logs | Covered | 100400 | AML.T0051 / AML.TA0002 | Long query detection via `query_length_bucket` |
 | Blocked long query | Gateway audit logs | Covered | 100401 | AML.T0051 / AML.TA0002 | Child rule when long query is blocked |
-| Off-hours access | Gateway audit logs | Planned | 100500 | AML.TA0001 | Requires user/time context |
-| Model tampering | Host/Wazuh FIM | Planned | 100600 | TBD | Requires file integrity monitoring |
-| RAG data poisoning | App/data logs | Research | TBD | AML.T0058 (planned) | Ingestion telemetry available; detection rule pending |
+| Off-hours access | Gateway audit logs | Not deployed | 100500 | AML.TA0001 | Requires user/time context |
+| Model tampering | Host/Wazuh FIM | Not deployed | 100600 | — | Requires file integrity monitoring |
+| RAG data poisoning | App/data logs | Telemetry only | — | AML.T0058 | Ingestion telemetry available |
 
 ## Coverage Legend
 
@@ -22,8 +22,8 @@ This matrix tracks detection coverage for clinical AI security scenarios.
 |---|---|
 | Covered | Detection rule exists and has sample logs |
 | Partial | Some cases covered, but not complete |
-| Planned | Detection design exists but not implemented |
-| Research | Needs more investigation |
+| Not deployed | Documented scenario; no active rule |
+| Telemetry only | Audit events exist; no Wazuh rule |
 
 ## MITRE ATLAS Summary
 

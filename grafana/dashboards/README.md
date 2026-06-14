@@ -94,9 +94,7 @@ Ensure Wazuh logs are forwarded to your observability stack:
 
 ## Status
 
-**Implemented**: 3 dashboards (Security Overview, Prompt Injection, RAG Ingestion)  
-**Phase 3.1B**: Complete — telemetry panels for latency, tokens, categories, ingestion  
-**Planned**: Risk scoring, PHI probing dedicated dashboard
+**Implemented**: 3 dashboards (Security Overview, Prompt Injection, RAG Ingestion)
 
 ---
 

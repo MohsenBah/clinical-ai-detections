@@ -61,9 +61,9 @@ The gateway should not log:
 
 Detection content should be built around metadata, decisions, and normalized reasons.
 
-## Future Data Sources
+## Additional Data Sources
 
-Planned future sources:
+Homelab extensions that can enrich detection context:
 
 - Ollama logs
 - Reverse proxy logs

@@ -26,10 +26,10 @@ Related docs: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [coverage-matr
 
 | Safeguard | Requirement (summary) | Gateway control | Detection / observability |
 |---|---|---|---|
-| **164.312(a)** Access control | Unique user identification; access to ePHI limited to authorized persons | `user_id`, `session_id` on all audit events; rate limiting | **100200** (repeated blocks per `user_id`); future off-hours rule |
+| **164.312(a)** Access control | Unique user identification; access to ePHI limited to authorized persons | `user_id`, `session_id` on all audit events; rate limiting | **100200** (repeated blocks per `user_id`) |
 | **164.312(b)** Audit controls | Record and examine access and activity in systems containing ePHI | Structured JSON audit log (`security.log`); query + ingestion events | All rules; Grafana dashboards; Promtail → Loki |
-| **164.312(c)** Integrity | Protect ePHI from improper alteration or destruction | Presidio at ingest; output filter (placeholder); ingest audit trail | Ingestion events (`event_type=ingestion`); **100300** PHI probing; future RAG poisoning rules |
-| **164.312(d)** Person or entity authentication | Verify persons/entities seeking access | Not implemented in lab gateway | Planned (API auth, mTLS) |
+| **164.312(c)** Integrity | Protect ePHI from improper alteration or destruction | Presidio at ingest; output filter (placeholder); ingest audit trail | Ingestion events (`event_type=ingestion`); **100300** PHI probing |
+| **164.312(d)** Person or entity authentication | Verify persons/entities seeking access | Not implemented in lab gateway | Not deployed |
 | **164.312(e)** Transmission security | Guard against unauthorized access to ePHI in transit | TLS at reverse proxy / infra layer | N/A at application rule layer |
 
 ### HIPAA mapping notes
@@ -46,13 +46,13 @@ Related docs: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [coverage-matr
 |---|---|---|---|---|
 | **LLM01** | Prompt Injection | Input validation, block patterns | 100100, 100101, 100102, 100200, 100400, 100401 | ✅ |
 | **LLM02** | Sensitive Information Disclosure | Presidio redaction, output filter | 100300 (PHI keyword probing) | ✅ Detect / partial prevent |
-| **LLM03** | Supply Chain | Dependency pinning, container images | — | ⏳ Process, not rule |
-| **LLM04** | Data and Model Poisoning | Controlled ingest path, audit events | Ingestion telemetry; Grafana RAG dashboard; rule TBD | 🔄 Telemetry only |
-| **LLM05** | Improper Output Handling | `filter_output()` middleware | `output_modified` in audit logs | 🔄 Partial |
+| **LLM03** | Supply Chain | Dependency pinning, container images | — | Process control |
+| **LLM04** | Data and Model Poisoning | Controlled ingest path, audit events | Ingestion telemetry; Grafana RAG dashboard | Telemetry only |
+| **LLM05** | Improper Output Handling | `filter_output()` middleware | `output_modified` in audit logs | Partial |
 | **LLM06** | Excessive Agency | Gateway-only tool access; no autonomous actions | 100200 (automated probing pattern) | ✅ Detect |
 | **LLM07** | System Prompt Leakage | Block extraction patterns | 100101 | ✅ |
-| **LLM08** | Vector and Embedding Weaknesses | Record-ID de-identification in RAG | — | 🔄 Gateway design |
-| **LLM09** | Misinformation | Clinical disclaimers in system prompt | — | ⏳ Model/policy |
+| **LLM08** | Vector and Embedding Weaknesses | Record-ID de-identification in RAG | — | Gateway design |
+| **LLM09** | Misinformation | Clinical disclaimers in system prompt | — | Model/policy |
 | **LLM10** | Unbounded Consumption | Rate limiting per `user_id` | Rate-limit audit events; 100400 long queries | ✅ Partial |
 
 ---
@@ -104,14 +104,14 @@ Example comment format:
 
 ---
 
-## Gaps and Planned Work
+## Documented Gaps
 
-| Gap | Framework | Planned action |
+| Gap | Framework | Notes |
 |---|---|---|
-| RAG poisoning detection rule | OWASP LLM04, HIPAA 164.312(c) | Wazuh rules on ingestion anomalies |
-| Off-hours access | HIPAA 164.312(a) | Rule 100500 |
-| Authentication / mTLS | HIPAA 164.312(d),(e) | Gateway hardening phase |
-| Full output PHI filtering | OWASP LLM02 | Presidio on model output |
+| RAG poisoning detection rule | OWASP LLM04, HIPAA 164.312(c) | Ingestion telemetry only |
+| Off-hours access | HIPAA 164.312(a) | Rule 100500 not deployed |
+| Authentication / mTLS | HIPAA 164.312(d),(e) | Not implemented in lab gateway |
+| Full output PHI filtering | OWASP LLM02 | Presidio at ingest only |
 | Compliance certification | All | Out of scope for homelab |
 
 ---

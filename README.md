@@ -2,7 +2,7 @@
 
 Detection engineering content for attacks against clinical LLM deployments.
 
-This repository contains Wazuh rules, log samples, detection documentation, and future dashboard content for monitoring the Clinical AI Gateway.
+This repository contains Wazuh rules, log samples, detection documentation, and Grafana dashboards for monitoring the Clinical AI Gateway.
 
 ## Purpose
 
@@ -16,7 +16,7 @@ The goal is to detect suspicious and adversarial behavior targeting clinical AI 
 
 This repo is part of the MedSecLab portfolio architecture.
 
-## Current Focus
+## Detection Target
 
 The first detection target is blocked prompt injection activity produced by the Clinical AI Gateway audit logs.
 
@@ -232,14 +232,6 @@ python3 scripts/validate_rules.py --wazuh     # on Wazuh manager host
 Test cases: `wazuh/tests/validation-cases.json` — each case defines `expect_rules` and `reject_rules`.
 
 See [wazuh/tests/validation-readme.md](wazuh/tests/validation-readme.md).
-
-## Future Work
-
-Planned detections:
-
-- Off-hours access
-- Model tampering indicators
-- RAG poisoning attempts
 
 ## Related Repository
 

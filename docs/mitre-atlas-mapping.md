@@ -89,13 +89,13 @@ Install rules from `wazuh/rules/100100-prompt-injection.xml` and verify with sam
 
 ---
 
-## Planned Extensions
+## Additional Scenarios
 
 | Scenario | Proposed ATLAS Mapping | Status |
 |---|---|---|
-| RAG data poisoning | AML.T0058 (LLM Prompt Injection — Indirect) | Telemetry available; rule TBD |
-| Off-hours access | AML.TA0001 | Rule 100500 planned |
-| Model tampering | AML.T0010 / AML.T0044 | Rule 100600 planned |
+| RAG data poisoning | AML.T0058 (LLM Prompt Injection — Indirect) | Telemetry only |
+| Off-hours access | AML.TA0001 | Not deployed (100500) |
+| Model tampering | AML.T0010 / AML.T0044 | Not deployed (100600) |
 
 ---
 

@@ -61,9 +61,9 @@ Rule 100200 fired: Clinical AI Gateway detected repeated prompt injection attemp
 
 ---
 
-## Planned Correlation Scenarios
+## Additional Correlation Scenarios
 
-The following correlation patterns are designed but not yet implemented as rules. They can be added to extend behavioral detection.
+Reference patterns for extending behavioral detection beyond rule 100200.
 
 ### Scenario 1: User-Based Anomaly Detection
 

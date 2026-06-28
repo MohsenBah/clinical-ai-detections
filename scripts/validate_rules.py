@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CASES_FILE = ROOT / "wazuh" / "tests" / "validation-cases.json"
 
 BLOCKED_PATTERN = re.compile(r"^blocked_pattern:")
+ADMIN_SCOPE = re.compile(r"^blocked_admin_scope:")
 PHI_QUERY = re.compile(
     r"(?i).*(ssn|social security|date of birth|dob|address|insurance|"
     r"phone number|contact info|medical record).*"
@@ -30,22 +31,28 @@ PHI_QUERY = re.compile(
 SYSTEM_PROMPT = re.compile(r"system prompt", re.I)
 INSTRUCTION_OVERRIDE = re.compile(r"ignore all previous instructions", re.I)
 
+# Repeated-injection correlation (rule 100200): 3 blocks per user in 5 min.
 CORRELATION_WINDOW_SEC = 300
 CORRELATION_MIN_MATCHES = 3
+# Repeated-ingestion-failure correlation (rule 100321): 3 failures per collection in 10 min.
+INGESTION_WINDOW_SEC = 600
+INGESTION_MIN_MATCHES = 3
 
 
 @dataclass
 class CorrelationState:
-    """Tracks rule 100100 fires per user for offline 100200 simulation."""
+    """Tracks rule fires per key for offline frequency-rule simulation."""
 
+    window_sec: int = CORRELATION_WINDOW_SEC
+    min_matches: int = CORRELATION_MIN_MATCHES
     hits: dict[str, list[float]] = field(default_factory=dict)
 
-    def record(self, user_id: str, timestamp: float) -> bool:
-        self.hits.setdefault(user_id, []).append(timestamp)
-        window_start = timestamp - CORRELATION_WINDOW_SEC
-        recent = [t for t in self.hits[user_id] if t >= window_start]
-        self.hits[user_id] = recent
-        return len(recent) >= CORRELATION_MIN_MATCHES
+    def record(self, key: str, timestamp: float) -> bool:
+        self.hits.setdefault(key, []).append(timestamp)
+        window_start = timestamp - self.window_sec
+        recent = [t for t in self.hits[key] if t >= window_start]
+        self.hits[key] = recent
+        return len(recent) >= self.min_matches
 
 
 def parse_timestamp(value: str) -> float:
@@ -80,6 +87,21 @@ def match_rule_100300(event: dict[str, Any]) -> bool:
     return event.get("event_type") == "query" and bool(PHI_QUERY.search(query))
 
 
+def match_rule_100310(event: dict[str, Any]) -> bool:
+    return (
+        event.get("event_type") == "query"
+        and event.get("decision") == "blocked"
+        and bool(ADMIN_SCOPE.match(str(event.get("reason", ""))))
+    )
+
+
+def match_rule_100320(event: dict[str, Any]) -> bool:
+    return (
+        event.get("event_type") == "ingestion"
+        and event.get("status") == "failed"
+    )
+
+
 def match_rule_100400(event: dict[str, Any]) -> bool:
     return (
         event.get("event_type") == "query"
@@ -92,7 +114,9 @@ def match_rule_100401(event: dict[str, Any]) -> bool:
 
 
 def evaluate_offline(
-    event: dict[str, Any], correlation: CorrelationState
+    event: dict[str, Any],
+    correlation: CorrelationState,
+    ingestion_correlation: CorrelationState | None = None,
 ) -> set[str]:
     matched: set[str] = set()
 
@@ -104,6 +128,10 @@ def evaluate_offline(
         matched.add("100102")
     if match_rule_100300(event):
         matched.add("100300")
+    if match_rule_100310(event):
+        matched.add("100310")
+    if match_rule_100320(event):
+        matched.add("100320")
     if match_rule_100400(event):
         matched.add("100400")
     if match_rule_100401(event):
@@ -114,6 +142,12 @@ def evaluate_offline(
         ts = parse_timestamp(str(event.get("timestamp", "1970-01-01T00:00:00+00:00")))
         if correlation.record(user_id, ts):
             matched.add("100200")
+
+    if match_rule_100320(event) and ingestion_correlation is not None:
+        collection = str(event.get("collection_name", ""))
+        ts = parse_timestamp(str(event.get("timestamp", "1970-01-01T00:00:00+00:00")))
+        if ingestion_correlation.record(collection, ts):
+            matched.add("100321")
 
     return matched
 
@@ -179,9 +213,12 @@ def check_case(
 def run_offline(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     correlation = CorrelationState()
+    ingestion_correlation = CorrelationState(
+        window_sec=INGESTION_WINDOW_SEC, min_matches=INGESTION_MIN_MATCHES
+    )
 
     for case in data.get("cases", []):
-        matched = evaluate_offline(case["event"], correlation)
+        matched = evaluate_offline(case["event"], correlation, ingestion_correlation)
         errors.extend(
             check_case(
                 case["id"],
@@ -193,9 +230,14 @@ def run_offline(data: dict[str, Any]) -> list[str]:
 
     for sequence in data.get("sequences", []):
         seq_correlation = CorrelationState()
+        seq_ingestion_correlation = CorrelationState(
+            window_sec=INGESTION_WINDOW_SEC, min_matches=INGESTION_MIN_MATCHES
+        )
         expectations = sequence.get("expect_rules_per_event", [])
         for idx, event in enumerate(sequence.get("events", [])):
-            matched = evaluate_offline(event, seq_correlation)
+            matched = evaluate_offline(
+                event, seq_correlation, seq_ingestion_correlation
+            )
             if idx < len(expectations):
                 errors.extend(
                     check_case(

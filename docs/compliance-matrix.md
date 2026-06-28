@@ -17,6 +17,9 @@ Related docs: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [coverage-matr
 | 100102 | Instruction override | (b) | LLM01 | Measure, Manage |
 | 100200 | Repeated probing | (a), (b) | LLM01, LLM06 | Measure, Manage |
 | 100300 | PHI probing | (b), (c) | LLM02, LLM06 | Measure, Map |
+| 100310 | Admin / credential exfiltration | (a), (b) | LLM02, LLM06 | Measure, Manage |
+| 100320 | RAG ingestion failure | (c) | LLM04 | Measure, Map |
+| 100321 | Repeated ingestion failures | (c) | LLM04 | Measure, Manage |
 | 100400 | Abnormal query length | (b) | LLM01, LLM04 | Measure |
 | 100401 | Blocked long query | (b) | LLM01, LLM04 | Measure, Manage |
 
@@ -26,9 +29,9 @@ Related docs: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [coverage-matr
 
 | Safeguard | Requirement (summary) | Gateway control | Detection / observability |
 |---|---|---|---|
-| **164.312(a)** Access control | Unique user identification; access to ePHI limited to authorized persons | `user_id`, `session_id` on all audit events; rate limiting | **100200** (repeated blocks per `user_id`) |
+| **164.312(a)** Access control | Unique user identification; access to ePHI limited to authorized persons | `user_id`, `session_id` on all audit events; rate limiting; admin-scope blocklist | **100200** (repeated blocks per `user_id`); **100310** (credential/config exfiltration) |
 | **164.312(b)** Audit controls | Record and examine access and activity in systems containing ePHI | Structured JSON audit log (`security.log`); query + ingestion events | All rules; Grafana dashboards; Promtail → Loki |
-| **164.312(c)** Integrity | Protect ePHI from improper alteration or destruction | Presidio at ingest; output filter (placeholder); ingest audit trail | Ingestion events (`event_type=ingestion`); **100300** PHI probing |
+| **164.312(c)** Integrity | Protect ePHI from improper alteration or destruction | Presidio at ingest; output filter (placeholder); ingest audit trail | Ingestion events (`event_type=ingestion`); **100320 / 100321** (ingestion failure / poisoning probing); **100300** PHI probing |
 | **164.312(d)** Person or entity authentication | Verify persons/entities seeking access | Not implemented in lab gateway | Not deployed |
 | **164.312(e)** Transmission security | Guard against unauthorized access to ePHI in transit | TLS at reverse proxy / infra layer | N/A at application rule layer |
 
@@ -45,11 +48,11 @@ Related docs: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [coverage-matr
 | Risk | Name | Gateway mitigation | Wazuh detection | Status |
 |---|---|---|---|---|
 | **LLM01** | Prompt Injection | Input validation, block patterns | 100100, 100101, 100102, 100200, 100400, 100401 | ✅ |
-| **LLM02** | Sensitive Information Disclosure | Presidio redaction, output filter | 100300 (PHI keyword probing) | ✅ Detect / partial prevent |
+| **LLM02** | Sensitive Information Disclosure | Presidio redaction, output filter, admin-scope blocklist | 100300 (PHI keyword probing), 100310 (credential/config exfiltration) | ✅ Detect / partial prevent |
 | **LLM03** | Supply Chain | Dependency pinning, container images | — | Process control |
-| **LLM04** | Data and Model Poisoning | Controlled ingest path, audit events | Ingestion telemetry; Grafana RAG dashboard | Telemetry only |
+| **LLM04** | Data and Model Poisoning | Controlled ingest path, audit events | 100320, 100321 (ingestion failure / repeated-failure correlation) | ✅ Detect (failed/malformed ingests) |
 | **LLM05** | Improper Output Handling | `filter_output()` middleware | `output_modified` in audit logs | Partial |
-| **LLM06** | Excessive Agency | Gateway-only tool access; no autonomous actions | 100200 (automated probing pattern) | ✅ Detect |
+| **LLM06** | Excessive Agency | Gateway-only tool access; admin-scope blocklist | 100200 (automated probing), 100310 (admin/credential exfiltration) | ✅ Detect |
 | **LLM07** | System Prompt Leakage | Block extraction patterns | 100101 | ✅ |
 | **LLM08** | Vector and Embedding Weaknesses | Record-ID de-identification in RAG | — | Gateway design |
 | **LLM09** | Misinformation | Clinical disclaimers in system prompt | — | Model/policy |
@@ -71,9 +74,9 @@ Related docs: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [coverage-matr
 | NIST function | Artifacts | Rules / signals |
 |---|---|---|
 | Govern | `MedSecLab/README.md`, gateway security controls | Policy-level |
-| Map | `coverage-matrix.md`, `mitre-atlas-mapping.md` | 100300 (recon / PHI) |
-| Measure | Wazuh rules, Grafana dashboards, `security.log` | 100100–100401 |
-| Manage | Gateway block + alert response | 100100, 100200, 100401 |
+| Map | `coverage-matrix.md`, `mitre-atlas-mapping.md` | 100300 (recon / PHI), 100320 (ingestion anomaly) |
+| Measure | Wazuh rules, Grafana dashboards, `security.log` | 100100–100401 (incl. 100310, 100320, 100321) |
+| Manage | Gateway block + alert response | 100100, 100200, 100310, 100321, 100401 |
 
 ---
 
@@ -85,7 +88,7 @@ These support compliance narratives but are not Wazuh rules:
 |---|---|---|
 | Structured audit logging | `gateway/middleware/audit.py` | HIPAA 164.312(b), NIST Measure |
 | Rate limiting | `gateway/middleware/rate_limit.py` | OWASP LLM10, HIPAA 164.312(a) |
-| Input validation | `gateway/middleware/input_validation.py` | OWASP LLM01 |
+| Input validation (injection + admin-scope blocklist) | `gateway/middleware/input_validation.py` | OWASP LLM01, LLM02, LLM06 |
 | Output filtering | `gateway/middleware/output_filter.py` | OWASP LLM02, LLM05 |
 | RAG ingest audit events | `gateway/routes/data.py` | HIPAA 164.312(c), OWASP LLM04 |
 | Query / ingestion telemetry | `gateway/routes/query.py` | NIST Measure |
@@ -108,7 +111,8 @@ Example comment format:
 
 | Gap | Framework | Notes |
 |---|---|---|
-| RAG poisoning detection rule | OWASP LLM04, HIPAA 164.312(c) | Ingestion telemetry only |
+| Content-level RAG poisoning | OWASP LLM04, HIPAA 164.312(c) | Failed/malformed ingests detected (100320/100321); successful poisoned content needs provenance checks |
+| Admin RBAC / caller identity | HIPAA 164.312(a),(d) | Credential/config exfiltration blocked (100310); per-role authorization not enforced |
 | Off-hours access | HIPAA 164.312(a) | Rule 100500 not deployed |
 | Authentication / mTLS | HIPAA 164.312(d),(e) | Not implemented in lab gateway |
 | Full output PHI filtering | OWASP LLM02 | Presidio at ingest only |

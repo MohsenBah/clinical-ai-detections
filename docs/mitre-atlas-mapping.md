@@ -6,10 +6,12 @@ This document maps Clinical AI Gateway Wazuh detection rules to [MITRE ATLAS](ht
 
 | ID | Name | Type |
 |---|---|---|
+| AML.TA0000 | ML Supply Chain Compromise | Tactic |
 | AML.TA0001 | Reconnaissance | Tactic |
 | AML.TA0002 | ML Model Access | Tactic |
 | AML.T0051 | LLM Prompt Injection | Technique |
 | AML.T0057 | LLM Data Leakage | Technique |
+| AML.T0058 | RAG Poisoning / Indirect Prompt Injection | Technique |
 
 ### Technique Summaries
 
@@ -17,7 +19,10 @@ This document maps Clinical AI Gateway Wazuh detection rules to [MITRE ATLAS](ht
 Adversaries craft malicious prompts that cause an LLM to ignore its original instructions and follow attacker-controlled behavior. In clinical deployments this includes jailbreaks, instruction overrides, and system prompt extraction attempts. Maps to OWASP LLM01.
 
 **AML.T0057 — LLM Data Leakage**  
-Adversaries craft prompts that induce the model to leak sensitive information from training data, connected sources, or prior context. In healthcare contexts this includes PHI probing for SSNs, addresses, and medical record identifiers.
+Adversaries craft prompts that induce the model to leak sensitive information from training data, connected sources, or prior context. In healthcare contexts this includes PHI probing for SSNs, addresses, and medical record identifiers, as well as administrative requests for credentials, API keys, and system configuration.
+
+**AML.T0058 — RAG Poisoning / Indirect Prompt Injection**  
+Adversaries tamper with the documents or data ingested into a Retrieval-Augmented Generation pipeline so that retrieved context manipulates model behavior. Repeated malformed or failed ingestion attempts can indicate probing of the ingest endpoint. Maps to OWASP LLM04.
 
 ### Tactic Summaries
 
@@ -38,6 +43,9 @@ Adversaries interact with the model inference interface to manipulate behavior, 
 | 100102 | Instruction override | 9 | AML.T0051 | AML.TA0002 | Child of 100100, `ignore all previous instructions` |
 | 100200 | Repeated probing | 10 | AML.T0051 | AML.TA0002 | 3+ Rule 100100 events per `user_id` in 5 min |
 | 100300 | PHI probing | 9 | AML.T0057 | AML.TA0001 | Query matches PHI keyword patterns |
+| 100310 | Admin / credential exfiltration | 10 | AML.T0057 | AML.TA0001 | `decision=blocked`, `reason=blocked_admin_scope:*` |
+| 100320 | RAG ingestion failure | 6 | AML.T0058 | AML.TA0000 | `event_type=ingestion`, `status=failed` |
+| 100321 | Repeated ingestion failures | 10 | AML.T0058 | AML.TA0000 | 3+ Rule 100320 events per `collection_name` in 10 min |
 | 100400 | Abnormal query length | 7 | AML.T0051 | AML.TA0002 | `query_length_bucket=large` |
 | 100401 | Blocked long query | 8 | AML.T0051 | AML.TA0002 | Child of 100400, `decision=blocked` |
 
@@ -54,6 +62,11 @@ Adversaries interact with the model inference interface to manipulate behavior, 
 
 100300  PHI probing (standalone)
 
+100310  Admin / credential exfiltration (standalone)
+
+100320  RAG ingestion failure
+└── 100321  Repeated ingestion failures (correlation on 100320)
+
 100400  Abnormal query length
 └── 100401  Blocked long query
 ```
@@ -65,9 +78,11 @@ Adversaries interact with the model inference interface to manipulate behavior, 
 | OWASP Risk | ATLAS Technique | Relevant Rules |
 |---|---|---|
 | LLM01 Prompt Injection | AML.T0051 | 100100, 100101, 100102, 100200, 100400, 100401 |
-| LLM06 Excessive Agency | AML.T0051 | 100200 (automated repeated probing) |
+| LLM02 Sensitive Disclosure | AML.T0057 | 100300, 100310 |
+| LLM04 Data and Model Poisoning | AML.T0058 | 100320, 100321 |
+| LLM06 Excessive Agency | AML.T0051 / AML.T0057 | 100200 (automated probing), 100310 (admin/credential exfiltration) |
 | LLM07 System Prompt Leakage | AML.T0051 | 100101 |
-| Sensitive data exposure | AML.T0057 | 100300 |
+| Sensitive data exposure | AML.T0057 | 100300, 100310 |
 
 Full HIPAA, OWASP, and NIST mappings: [compliance-matrix.md](compliance-matrix.md)
 
@@ -93,10 +108,10 @@ Install rules from `wazuh/rules/100100-prompt-injection.xml` and verify with sam
 
 | Scenario | Proposed ATLAS Mapping | Status |
 |---|---|---|
-| RAG data poisoning | AML.T0058 (LLM Prompt Injection — Indirect) | Telemetry only |
+| Content-level RAG poisoning | AML.T0058 (RAG Poisoning / Indirect Injection) | Failed-ingest detection deployed (100320/100321); content provenance pending |
 | Off-hours access | AML.TA0001 | Not deployed (100500) |
 | Model tampering | AML.T0010 / AML.T0044 | Not deployed (100600) |
 
 ---
 
-*Last updated: Phase 3.2A — all 7 active rules mapped.*
+*All 10 active rules mapped (100100–100102, 100200, 100300, 100310, 100320, 100321, 100400, 100401).*

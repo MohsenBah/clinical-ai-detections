@@ -1,7 +1,7 @@
 # Clinical AI Detections
 
 ![Validate detections](https://github.com/MohsenBah/clinical-ai-detections/actions/workflows/validate-detections.yml/badge.svg)
-![Rules](https://img.shields.io/badge/Wazuh%20rules-7%20(100100--100401)-blue)
+![Rules](https://img.shields.io/badge/Wazuh%20rules-10%20(100100--100401)-blue)
 ![MITRE ATLAS](https://img.shields.io/badge/mapped-MITRE%20ATLAS-orange)
 
 Detection engineering content for attacks against clinical LLM deployments.
@@ -206,18 +206,21 @@ Advanced behavioral detection using Wazuh correlation:
 
 - **Rule 100200**: Repeated probing (3+ blocked events from same user in 5 minutes)
 - **Rule 100300**: PHI probing (queries targeting personal health information)
+- **Rule 100310**: Admin / credential exfiltration (admin-scope blocklist hits)
+- **Rule 100320/321**: RAG ingestion failure and repeated-failure correlation (poisoning probing)
 - **Rule 100400/401**: Abnormal query length detection
 
 See [docs/correlation-rules.md](docs/correlation-rules.md) for detailed documentation.
 
 ## MITRE ATLAS Mapping
 
-All 7 detection rules (100100–100401) are mapped to MITRE ATLAS techniques and tactics:
+All 10 detection rules (100100–100401) are mapped to MITRE ATLAS techniques and tactics:
 
 | Technique | Tactic | Rules |
 |---|---|---|
 | AML.T0051 — LLM Prompt Injection | AML.TA0002 — ML Model Access | 100100, 100101, 100102, 100200, 100400, 100401 |
-| AML.T0057 — LLM Data Leakage | AML.TA0001 — Reconnaissance | 100300 |
+| AML.T0057 — LLM Data Leakage | AML.TA0001 — Reconnaissance | 100300, 100310 |
+| AML.T0058 — RAG Poisoning / Indirect Injection | AML.TA0000 — ML Supply Chain | 100320, 100321 |
 
 See [docs/mitre-atlas-mapping.md](docs/mitre-atlas-mapping.md) for full mapping details.
 
@@ -257,10 +260,10 @@ clinical-ai-gateway
 **Phase 3 complete** — Detection, compliance, validation
 
 - ✅ Wazuh decoder (native JSON parsing)
-- ✅ 7 detection rules (100100–100401) with MITRE ATLAS annotations
+- ✅ 10 detection rules (100100–100401) with MITRE ATLAS annotations
 - ✅ `docs/mitre-atlas-mapping.md` and `docs/compliance-matrix.md`
 - ✅ Automated validation (`validation-cases.json`, `scripts/validate_rules.py`, CI)
-- ✅ 21 test samples with PHI probing, rate limiting, normal queries
+- ✅ 26 test samples with PHI probing, admin abuse, RAG ingestion, rate limiting, normal queries
 - ✅ 3 Grafana dashboards (Security Overview, Prompt Injection, RAG Ingestion)
 - ✅ Correlation rules documentation
 - ✅ Complete detection pipeline with screenshots

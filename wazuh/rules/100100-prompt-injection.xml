@@ -71,6 +71,45 @@ Mappings:
     <group>clinical_ai_gateway,phi_probing,</group>
   </rule>
 
+  <!-- Admin-scope abuse: credential / config / secret exfiltration blocked at gateway (CAI-004) -->
+  <!-- compliance: hipaa=164.312(a),(b); owasp=LLM02,LLM06; nist=Measure,Manage -->
+  <rule id="100310" level="10">
+    <if_sid>86600</if_sid>
+    <field name="event_type">query</field>
+    <field name="decision">blocked</field>
+    <field name="reason" type="pcre2">^blocked_admin_scope:</field>
+    <description>Clinical AI Gateway blocked an administrative privilege / credential exfiltration attempt</description>
+    <mitre>
+      <id>AML.T0057</id>
+    </mitre>
+    <group>clinical_ai_gateway,admin_abuse,blocked,</group>
+  </rule>
+
+  <!-- RAG ingestion failure: possible malformed or malicious ingest (data poisoning) -->
+  <!-- compliance: hipaa=164.312(c); owasp=LLM04; nist=Measure,Map -->
+  <rule id="100320" level="6">
+    <if_sid>86600</if_sid>
+    <field name="event_type">ingestion</field>
+    <field name="status">failed</field>
+    <description>Clinical AI Gateway RAG ingestion failed (possible malformed or malicious data)</description>
+    <mitre>
+      <id>AML.T0058</id>
+    </mitre>
+    <group>clinical_ai_gateway,rag_ingestion,data_poisoning,</group>
+  </rule>
+
+  <!-- Repeated ingestion failures into one collection: likely ingest-endpoint abuse / poisoning probing -->
+  <!-- compliance: hipaa=164.312(c); owasp=LLM04; nist=Measure,Manage -->
+  <rule id="100321" level="10" frequency="3" timeframe="600">
+    <if_matched_sid>100320</if_matched_sid>
+    <same_field>collection_name</same_field>
+    <description>Clinical AI Gateway detected repeated RAG ingestion failures (possible data poisoning attempts)</description>
+    <mitre>
+      <id>AML.T0058</id>
+    </mitre>
+    <group>clinical_ai_gateway,rag_ingestion,data_poisoning,</group>
+  </rule>
+
   <!-- Abnormal query length: potential stuffing or exfiltration -->
   <!-- compliance: hipaa=164.312(b); owasp=LLM01,LLM04; nist=Measure -->
   <rule id="100400" level="7">

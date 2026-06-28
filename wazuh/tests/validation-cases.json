@@ -164,6 +164,43 @@
       "reject_rules": ["100100"]
     },
     {
+      "id": "blocked-admin-credential-exfiltration",
+      "description": "Credential / account enumeration blocked at gateway (CAI-004 remediation)",
+      "event": {
+        "timestamp": "2026-06-14T20:10:05.120Z",
+        "event_type": "query",
+        "request_id": "adm-004",
+        "user_id": "admin-abuser",
+        "session_id": "admin-session-1",
+        "decision": "blocked",
+        "reason": "blocked_admin_scope:credential",
+        "blocked_category": "admin_abuse",
+        "matched_pattern": "credential",
+        "query_length": 64,
+        "latency_ms": 1.9
+      },
+      "expect_rules": ["100310"],
+      "reject_rules": ["100100", "100300", "100400"]
+    },
+    {
+      "id": "rag-ingestion-failed",
+      "description": "Single failed ingestion logs a low-severity poisoning signal (no correlation yet)",
+      "event": {
+        "timestamp": "2026-06-14T20:12:00.000Z",
+        "event_type": "ingestion",
+        "source_type": "json",
+        "record_count": 0,
+        "chunk_count": 0,
+        "status": "failed",
+        "data_path": "/tmp/poison.json",
+        "collection_name": "clinical_records",
+        "duration_ms": 4.0,
+        "error_message": "invalid record schema"
+      },
+      "expect_rules": ["100320"],
+      "reject_rules": ["100321", "100100", "100300"]
+    },
+    {
       "id": "rate-limit-no-injection-rule",
       "description": "Rate limit is logged but has no dedicated Wazuh rule",
       "event": {
@@ -225,6 +262,53 @@
         ["100100", "100102"],
         ["100100"],
         ["100100", "100102", "100200"]
+      ]
+    },
+    {
+      "id": "repeated-ingestion-failure-correlation",
+      "description": "Three failed ingests into one collection triggers 100321 on last event (data poisoning probing)",
+      "events": [
+        {
+          "timestamp": "2026-06-14T20:20:01.000Z",
+          "event_type": "ingestion",
+          "source_type": "json",
+          "record_count": 0,
+          "chunk_count": 0,
+          "status": "failed",
+          "data_path": "/tmp/poison-1.json",
+          "collection_name": "clinical_records",
+          "duration_ms": 3.0,
+          "error_message": "invalid record schema"
+        },
+        {
+          "timestamp": "2026-06-14T20:21:30.000Z",
+          "event_type": "ingestion",
+          "source_type": "json",
+          "record_count": 0,
+          "chunk_count": 0,
+          "status": "failed",
+          "data_path": "/tmp/poison-2.json",
+          "collection_name": "clinical_records",
+          "duration_ms": 3.1,
+          "error_message": "invalid record schema"
+        },
+        {
+          "timestamp": "2026-06-14T20:23:10.000Z",
+          "event_type": "ingestion",
+          "source_type": "json",
+          "record_count": 0,
+          "chunk_count": 0,
+          "status": "failed",
+          "data_path": "/tmp/poison-3.json",
+          "collection_name": "clinical_records",
+          "duration_ms": 3.2,
+          "error_message": "invalid record schema"
+        }
+      ],
+      "expect_rules_per_event": [
+        ["100320"],
+        ["100320"],
+        ["100320", "100321"]
       ]
     }
   ]

@@ -11,11 +11,14 @@ This matrix tracks detection coverage for clinical AI security scenarios.
 | Encoded injection (URL/Base64) | Gateway audit logs | Covered | 100100, 100102 | AML.T0051 / AML.TA0002 | Gateway normalizes input; `decode_method` records the encoding (CAI-006 remediation) |
 | Repeated probing | Gateway audit logs | Covered | 100200 | AML.T0051 / AML.TA0002 | Correlation: 3+ blocked events per user in 5 min |
 | PHI probing | Gateway audit logs | Covered | 100300 | AML.T0057 / AML.TA0001 | PHI keyword detection with 5+ test samples |
+| Admin / credential exfiltration | Gateway audit logs | Covered | 100310 | AML.T0057 / AML.TA0001 | Gateway blocks admin-scope patterns; `reason=blocked_admin_scope:*` (CAI-004 remediation) |
+| RAG ingestion failure | App/data logs | Covered | 100320 | AML.T0058 | Failed/malformed ingest event (`status=failed`) |
+| Repeated ingestion failures | App/data logs | Covered | 100321 | AML.T0058 | Correlation: 3+ failed ingests per collection in 10 min (poisoning probing) |
 | Abnormal query length | Gateway audit logs | Covered | 100400 | AML.T0051 / AML.TA0002 | Long query detection via `query_length_bucket` |
 | Blocked long query | Gateway audit logs | Covered | 100401 | AML.T0051 / AML.TA0002 | Child rule when long query is blocked |
 | Off-hours access | Gateway audit logs | Not deployed | 100500 | AML.TA0001 | Requires user/time context |
 | Model tampering | Host/Wazuh FIM | Not deployed | 100600 | — | Requires file integrity monitoring |
-| RAG data poisoning | App/data logs | Telemetry only | — | AML.T0058 | Ingestion telemetry available |
+| Content-level RAG poisoning | App/data logs | Telemetry only | — | AML.T0058 | Failed-ingest detection deployed (100320/100321); content provenance pending |
 
 ## Coverage Legend
 
@@ -31,7 +34,8 @@ This matrix tracks detection coverage for clinical AI security scenarios.
 | Technique | Tactic | Rules |
 |---|---|---|
 | AML.T0051 — LLM Prompt Injection | AML.TA0002 — ML Model Access | 100100, 100101, 100102, 100200, 100400, 100401 |
-| AML.T0057 — LLM Data Leakage | AML.TA0001 — Reconnaissance | 100300 |
+| AML.T0057 — LLM Data Leakage | AML.TA0001 — Reconnaissance | 100300, 100310 |
+| AML.T0058 — RAG Poisoning / Indirect Injection | AML.TA0000 — ML Supply Chain | 100320, 100321 |
 
 Full mapping details: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [compliance-matrix.md](compliance-matrix.md)
 
@@ -41,14 +45,18 @@ Full mapping details: [mitre-atlas-mapping.md](mitre-atlas-mapping.md) · [compl
 |---|---|---|
 | HIPAA §164.312(b) Audit controls | All rules + gateway audit log | [compliance-matrix.md](compliance-matrix.md) |
 | OWASP LLM01 Prompt injection | 100100–100102, 100200, 100400, 100401 | [compliance-matrix.md](compliance-matrix.md) |
-| OWASP LLM02 Sensitive disclosure | 100300 | [compliance-matrix.md](compliance-matrix.md) |
+| OWASP LLM02 Sensitive disclosure | 100300, 100310 | [compliance-matrix.md](compliance-matrix.md) |
+| OWASP LLM04 Data / model poisoning | 100320, 100321 | [compliance-matrix.md](compliance-matrix.md) |
+| OWASP LLM06 Excessive agency / privilege | 100310 | [compliance-matrix.md](compliance-matrix.md) |
 | NIST AI RMF Measure | 100100–100401, Grafana telemetry | [compliance-matrix.md](compliance-matrix.md) |
 
 ## Test Coverage Summary
 
-- **Total test samples**: 21
+- **Total test samples**: 26
 - **Prompt injection patterns**: 7 samples
 - **PHI probing queries**: 5 samples (triggers Rule 100300)
+- **Admin / credential exfiltration**: 1 sample (triggers Rule 100310)
+- **RAG ingestion failures**: 4 samples (triggers Rule 100320; 3-event correlation triggers 100321)
 - **Rate limiting events**: 3 samples
 - **Normal clinical queries**: 3 samples (false positive testing)
 - **Abnormal length queries**: 2 samples (triggers Rule 100400/100401)
